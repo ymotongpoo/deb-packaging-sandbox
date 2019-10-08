@@ -39,5 +39,6 @@ RUN fakeroot dpkg-deb --build /pkgroot .
 
 FROM debian:buster-slim as installer
 COPY --from=packager /out/hello_0.0.1_amd64.deb .
-RUN dpkg -i hello_0.0.1_amd64.deb
+RUN apt-get -qq update \
+  && apt-get install -y --no-install-recommends -q ./hello_0.0.1_amd64.deb
 CMD /usr/bin/hello
