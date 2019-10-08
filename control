@@ -1,0 +1,5 @@
+Package: hello
+Maintainer: Yoshi Yamaguchi <ymotongpoo@gmail.com>
+Architecture: amd64
+Version: 0.0.1
+Description: Sample application that prints "hello" on STDOUT.
