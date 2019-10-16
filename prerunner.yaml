@@ -1,0 +1,11 @@
+steps:
+- name: gcr.io/cloud-builders/docker
+  args: ['build', '-t', 'gcr.io/$PROJECT_ID/perf_to_profile_builder:${_BAZEL_VER}',
+    '-f', 'builder/perf_data_converter.dockerfile', '.']
+  id: perf_to_profile_builder
+
+substitutions:
+  _BAZEL_VER: 1.0.0
+
+images:
+- 'gcr.io/$PROJECT_ID/perf_to_profile_builder:${_BAZEL_VER}'

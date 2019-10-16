@@ -1,0 +1,26 @@
+steps:
+- name: gcr.io/cloud-builders/git
+  args: ['clone', 'https://github.com/google/perf_data_converter.git']
+  id: perf_to_profile_1
+  waitFor: ['-']
+
+- name: gcr.io/cloud-builders/docker
+  args: ['run',
+    '--volume', '/workspace/perf_data_converter:/workspace',
+    '-t', 'gcr.io/${PROJECT_ID}/perf_to_profile_builder:${_BAZEL_VER}',
+    'bazel', '--output_base=/workspace/out', 'build', 'src:perf_to_profile']
+  dir: 'perf_data_converter'
+  id: perf_to_profile_2
+  waitFor: ['perf_to_profile_1']
+
+substitutions:
+  _BAZEL_VER: 1.0.0
+
+artifacts:
+  objects:
+    location: 'gs://ymotongpoo-distribution'
+    paths:
+      - perf_data_converter/out/execroot/__main__/bazel-out/k8-fastbuild/bin/src/perf_to_profile
+
+options:
+  machineType: 'N1_HIGHCPU_8'
