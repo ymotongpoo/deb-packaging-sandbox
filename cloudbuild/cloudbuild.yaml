@@ -2,19 +2,22 @@ steps:
 - name: gcr.io/cloud-builders/git
   args: ['clone', 'https://github.com/google/perf_data_converter.git']
   id: perf_to_profile_1
-  waitFor: ['-']
+  waitFor:
+    - '-'
 
-- name: gcr.io/cloud-builders/docker
-  args: ['run',
-    '--volume', '/workspace/perf_data_converter:/workspace',
-    '-t', 'gcr.io/${PROJECT_ID}/perf_to_profile_builder:${_BAZEL_VER}',
-    'bazel', '--output_base=/workspace/out', 'build', 'src:perf_to_profile']
-  dir: 'perf_data_converter'
+- name: busybox
+  entrypoint: 'sed'
+  args: ['-i', '-e', 's/\/\/src:__subpackage__/\/\/visibility:public/g',
+    'perf_data_converter/src/BUILD']
   id: perf_to_profile_2
-  waitFor: ['perf_to_profile_1']
+  waitFor:
+    - 'perf_to_profile_1'
 
-substitutions:
-  _BAZEL_VER: 1.0.0
+- name: gcr.io/cloud-builders/bazel
+  args: ['build', '@perf_data_converter//src:perf_to_profile']
+  id: perf_to_profile_3
+  waitFor:
+    - 'perf_to_profile_2'
 
 artifacts:
   objects:

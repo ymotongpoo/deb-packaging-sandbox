@@ -1,0 +1,59 @@
+workspace(name = "perf_to_profile")
+
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+git_repository(
+    name = "com_google_protobuf",
+    commit = "09745575a923640154bcf307fba8aedff47f240a",
+    remote = "https://github.com/protocolbuffers/protobuf",
+    shallow_since = "1558721209 -0700",
+)
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
+
+# @bazel_skylib and @boringssl are from @perf_data_converter//src/BUILD
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "bazel_skylib",
+    sha256 = "bbccf674aa441c266df9894182d80de104cabd19be98be002f6d478aaa31574d",
+    urls = ["https://github.com/bazelbuild/bazel-skylib/archive/2169ae1c374aab4a09aa90e65efe1a3aad4e279b.tar.gz"],
+    strip_prefix = "bazel-skylib-2169ae1c374aab4a09aa90e65efe1a3aad4e279b",
+)
+
+http_archive(
+    name = "boringssl",  # Must match upstream workspace name.
+    # Gitiles creates gzip files with an embedded timestamp, so we cannot use
+    # sha256 to validate the archives.  We must rely on the commit hash and
+    # https. Commits must come from the master-with-bazel branch.
+    urls = ["https://github.com/google/boringssl/archive/master-with-bazel.zip"],
+    strip_prefix = "boringssl-master-with-bazel",
+)
+
+git_repository(
+    name = "rules_deb_packages",
+    commit = "b8d6ea0a5465973ce0970f6e063dfebea473732c",
+    remote = "https://github.com/bazelbuild/rules_pkg/",
+)
+load("@rules_deb_packages//deb_packages:deb_packages.bzl", "deb_packages")
+deb_packages(
+    name = "perf_data_converter_deps",
+    arch = "amd64",
+    distro = "buster",
+    distro_type = "debian",
+    mirrors = [
+        "http://deb.debian.org/debian",
+        "http://ftp.us.debian.org/debian/",
+        "http://ftp.jp.debian.org/debian",
+    ],
+    components = ["main"],
+    packages = {
+        "libelf-dev": "pool/main/e/elfutils/libelf-dev_0.176-1.1_amd64.deb",
+        "libcap-dev": "pool/main/libc/libcap2/libcap-dev_2.25-2_amd64.deb",
+    },
+)
+
+local_repository(
+    name = "perf_data_converter",
+    path = "/workspace/perf_data_converter",
+)
